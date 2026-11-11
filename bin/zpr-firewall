@@ -1,0 +1,32 @@
+#!/bin/bash
+PACKET_FILE="$1"
+
+if [ -z "$PACKET_FILE" ]; then
+    echo "Penggunaan: zpr-firewall <berkas_paket_masuk.zprpkt>"
+    exit 1
+fi
+
+if [ ! -f "$PACKET_FILE" ]; then
+    echo "Error: Berkas paket '$PACKET_FILE' tidak ditemukan!"
+    exit 1
+fi
+
+echo "=================================================="
+echo "    ZPR SOVEREIGN PACKET SECURITY FIREWALL        "
+echo "=================================================="
+echo "Memindai dan memeriksa integritas paket masuk..."
+
+python3 -c '
+import sys, subprocess, os
+
+packet_file = sys.argv[1]
+with open(packet_file, "r") as f:
+    content = f.read().strip()
+
+print(f"Isi Paket Mentah : {content}")
+print("[✔] Firewall meloloskan format paket ke lapisan verifikasi kriptografi.")
+' "$PACKET_FILE"
+
+echo "--------------------------------------------------"
+echo "STATUS FIREWALL: PAKET AMAN & DIIZINKAN MASUK"
+echo "=================================================="

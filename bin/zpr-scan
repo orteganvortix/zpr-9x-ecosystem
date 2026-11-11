@@ -1,0 +1,17 @@
+#!/bin/bash
+TARGET_DIR="${1:-.}"
+MANIFEST="folder_manifest.zpr"
+
+echo "=== MEMINDAI DIREKTORI SECARA REKURSIF DENGAN ZPR-9X ==="
+echo "Target: $TARGET_DIR"
+
+# Hapus manifest lama jika ada
+rm -f "$MANIFEST"
+
+# Cari semua file secara rekursif dan hitung hash ZPR-9X
+find "$TARGET_DIR" -type f ! -name "$MANIFEST" ! -name "zpr9x" ! -name "zpr9x.c" ! -name "zpr9x.h" ! -name "Makefile" | while read -r file; do
+    zpr9x "$file" >> "$MANIFEST"
+done
+
+echo "Selesai! Manifest tersimpan di: $MANIFEST"
+echo "Total file yang dilindungi: $(wc -l < "$MANIFEST")"

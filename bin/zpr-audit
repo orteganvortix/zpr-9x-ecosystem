@@ -1,0 +1,45 @@
+#!/bin/bash
+echo "=================================================="
+echo "    ZPR SOVEREIGN SECURITY AUDIT & COMPLIANCE     "
+echo "=================================================="
+ISSUES=0
+
+# 1. Audit Hak Akses Biner Global
+echo "[*] Memeriksa hak akses biner di \$PREFIX/bin..."
+for bin in zpr9x zpr-scan zpr-ledger zpr-verify zpr-bundle zpr-unpack zpr-status zpr-vault zpr-msg zpr-doctor zpr-mine zpr-crypt zpr-shred zpr-auth zpr-token zpr-net; do
+    if [ -f "$PREFIX/bin/$bin" ]; then
+        if [ -x "$PREFIX/bin/$bin" ]; then
+            echo "    [✔] $bin : Terpasang & Executable"
+        else
+            echo "    [✖] $bin : Tidak memiliki izin eksekusi!"
+            ISSUES=$((ISSUES+1))
+        fi
+    else
+        echo "    [!] $bin : Tidak ditemukan di direktori global"
+    fi
+done
+
+# 2. Audit Integritas Rantai Ledger
+echo "[*] Memeriksa integritas rantai ledger..."
+if [ -f "zpr_chain.dat" ]; then
+    BLOCKS=$(wc -l < zpr_chain.dat)
+    echo "    [✔] zpr_chain.dat ditemukan ($BLOCKS blok tercatat)"
+else
+    echo "    [!] zpr_chain.dat belum diinisialisasi"
+fi
+
+# 3. Audit Brankas Vault
+echo "[*] Memeriksa keberadaan brankas privat..."
+if [ -f "zpr_vault.dat" ]; then
+    echo "    [✔] zpr_vault.dat aktif dan terkunci aman"
+else
+    echo "    [!] zpr_vault.dat belum ada"
+fi
+
+echo "--------------------------------------------------"
+if [ $ISSUES -eq 0 ]; then
+    echo "HASIL AUDIT: KEPATUHAN KEDAULATAN 100% TERPENUHI (AMAN)"
+else
+    echo "HASIL AUDIT: Ditemukan $ISSUES potensi masalah keamanan."
+fi
+echo "=================================================="

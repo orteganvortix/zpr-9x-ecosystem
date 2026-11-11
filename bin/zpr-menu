@@ -1,0 +1,29 @@
+#!/bin/bash
+while true; do
+    clear
+    echo "=================================================="
+    echo "       ZPR-9X SOVEREIGN COMMAND CENTER           "
+    echo "=================================================="
+    echo " 1. Dasbor Status Sistem       (zpr-status)"
+    echo " 2. Jalankan Audit Keamanan     (zpr-audit)"
+    echo " 3. Jalankan Stres Performa     (zpr-bench)"
+    echo " 4. Jalankan Uji Integrasi      (zpr-suite)"
+    echo " 5. Inspeksi Kesehatan Sistem   (zpr-doctor)"
+    echo " 6. Buat Backup Cold Storage   (zpr-cold)"
+    echo " 7. Penambangan Blok Baru       (zpr-mine)"
+    echo " 8. Keluar Ke Shell"
+    echo "=================================================="
+    read -p "Pilih opsi [1-8]: " OPTION
+
+    case $OPTION in
+        1) zpr-status; read -p "Tekan Enter untuk kembali...";;
+        2) zpr-audit; read -p "Tekan Enter untuk kembali...";;
+        3) zpr-bench; read -p "Tekan Enter untuk kembali...";;
+        4) zpr-suite; read -p "Tekan Enter untuk kembali...";;
+        5) zpr-doctor; read -p "Tekan Enter untuk kembali...";;
+        6) zpr-cold; read -p "Tekan Enter untuk kembali...";;
+        7) zpr-mine; read -p "Tekan Enter untuk kembali...";;
+        8) echo "Keluar dari pusat kendali."; break;;
+        *) echo "Pilihan tidak valid."; sleep 1;;
+    esac
+done

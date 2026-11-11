@@ -1,0 +1,7 @@
+*.dat
+*.sig
+*.zpr
+*.zprcold
+*.zprenc
+*.zprpkg
+*.log

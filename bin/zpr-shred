@@ -1,0 +1,48 @@
+#!/bin/bash
+TARGET="$1"
+
+if [ -z "$TARGET" ]; then
+    echo "Penggunaan: zpr-shred <berkas_sensitif>"
+    exit 1
+fi
+
+if [ ! -f "$TARGET" ]; then
+    echo "Error: Berkas '$TARGET' tidak ditemukan!"
+    exit 1
+fi
+
+echo "=================================================="
+echo "      ZPR-9X SOVEREIGN SECURE FILE SHREDDER       "
+echo "=================================================="
+
+python3 -c '
+import sys, os, subprocess
+
+target = sys.argv[1]
+file_size = os.path.getsize(target)
+
+print(f"Target Penghancuran : {target}")
+print(f"Ukuran Berkas       : {file_size} byte")
+print("Melakukan penimpaan chaos (3 pass overwrite)...")
+
+for pass_num in range(1, 4):
+    print(f"Pass penimpaan ke-{pass_num}...")
+    # Hasilkan aliran data acak berbasis ZPR-9X sejumlah ukuran berkas
+    chaos_data = bytearray()
+    curr = f"SHRED_PASS_{pass_num}_{os.urandom(8).hex()}"
+    
+    while len(chaos_data) < file_size:
+        p = subprocess.run(["zpr9x"], input=curr.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        curr = p.stdout.decode().strip().split()[0]
+        chaos_data.extend(bytes.fromhex(curr))
+        
+    with open(target, "wb") as f:
+        f.write(chaos_data[:file_size])
+        f.flush()
+        os.fsync(f.fileno())
+
+# Hapus total berkas dari disk
+os.remove(target)
+print(f"[✔] Berkas '{target}' telah dihancurkan dan dihapus secara aman!")
+' "$TARGET"
+echo "=================================================="

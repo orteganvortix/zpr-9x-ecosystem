@@ -1,0 +1,36 @@
+#!/bin/bash
+TARGET_PEER="$1"
+MESSAGE="$2"
+
+if [ -z "$TARGET_PEER" ] || [ -z "$MESSAGE" ]; then
+    echo "Penggunaan: zpr-relay <nama_node_peer> <pesan_rahasia>"
+    exit 1
+fi
+
+PEER_DB="zpr_peers.dat"
+if [ ! -f "$PEER_DB" ]; then
+    echo "Error: Belum ada database peer (zpr_peers.dat)."
+    exit 1
+fi
+
+FP=$(grep "^$TARGET_PEER:" "$PEER_DB" | cut -d':' -f2-)
+if [ -z "$FP" ]; then
+    echo "Error: Node peer '$TARGET_PEER' tidak ditemukan di registri!"
+    exit 1
+fi
+
+echo "=================================================="
+echo "    ZPR SOVEREIGN P2P ENCRYPTED RELAY             "
+echo "=================================================="
+echo "Target Peer   : $TARGET_PEER"
+echo "Fingerprint   : ${FP:0:32}..."
+echo "Pesan Asli    : $MESSAGE"
+
+TIMESTAMP=$(date +%s)
+PACKET="RELAY_TO:$TARGET_PEER|MSG:$MESSAGE|TS:$TIMESTAMP"
+SIGNATURE=$(echo -n "$PACKET" | zpr9x | awk '{print $1}')
+
+echo "Paket Terbungkus Sukses!"
+echo "Signature 1024: ${SIGNATURE:0:32}..."
+echo "[✔] Pesan siap disalurkan melalui media offline/P2P!"
+echo "=================================================="

@@ -1,0 +1,25 @@
+#!/bin/bash
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_NAME="zpr_cold_storage_$TIMESTAMP.zprcold"
+
+echo "=================================================="
+echo "    ZPR SOVEREIGN COLD STORAGE BACKUP VAULT       "
+echo "=================================================="
+echo "Mengumpulkan data esensial untuk penyimpanan dingin..."
+
+mkdir -p .cold_staging
+[ -f "zpr_chain.dat" ] && cp zpr_chain.dat .cold_staging/
+[ -f "zpr_vault.dat" ] && cp zpr_vault.dat .cold_staging/
+[ -f "folder_manifest.zpr" ] && cp folder_manifest.zpr .cold_staging/
+[ -f "zpr_peers.dat" ] && cp zpr_peers.dat .cold_staging/
+
+tar -czf "$BACKUP_NAME" -C .cold_staging .
+rm -rf .cold_staging
+
+# Hasilkan tanda tangan integritas 1024-bit untuk arsip dingin
+zpr-9x "$BACKUP_NAME" > "${BACKUP_NAME}.sig" 2>/dev/null || zpr9x "$BACKUP_NAME" > "${BACKUP_NAME}.sig"
+
+echo "[✔] Berkas Cold Storage Berhasil Dibuat!"
+echo "Arsip Dingin : $BACKUP_NAME"
+echo "Berkas Kunci : ${BACKUP_NAME}.sig"
+echo "=================================================="

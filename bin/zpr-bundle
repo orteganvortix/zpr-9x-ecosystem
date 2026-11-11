@@ -1,0 +1,29 @@
+#!/bin/bash
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BUNDLE_NAME="zpr_node_package_$TIMESTAMP.zprpkg"
+SIG_NAME="${BUNDLE_NAME}.sig"
+
+echo "=== MEMBUAT PAKET NODE KEDAULATAN OFFLINE (ZPR-BUNDLE) ==="
+
+if [ ! -f "zpr_chain.dat" ] && [ ! -f "folder_manifest.zpr" ]; then
+    echo "Error: Tidak ditemukan berkas rantai ledger maupun manifest folder!"
+    exit 1
+fi
+
+# Buat direktori staging sementara
+mkdir -p .zpr_staging
+[ -f "zpr_chain.dat" ] && cp zpr_chain.dat .zpr_staging/
+[ -f "folder_manifest.zpr" ] && cp folder_manifest.zpr .zpr_staging/
+
+# Arsipkan menjadi format tar.gz eksklusif
+tar -czf "$BUNDLE_NAME" -C .zpr_staging .
+rm -rf .zpr_staging
+
+# Hasilkan tanda tangan hash 1024-bit eksklusif untuk paket ini
+zpr9x "$BUNDLE_NAME" > "$SIG_NAME"
+
+echo "--------------------------------------------------"
+echo "PENGEMASAN SELESAI!"
+echo "Berkas Paket  : $BUNDLE_NAME"
+echo "Berkas Tanda Tangan: $SIG_NAME"
+echo "Sidik Jari Hash: $(cat "$SIG_NAME" | awk '{print $1}')"

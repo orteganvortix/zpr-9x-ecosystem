@@ -1,0 +1,24 @@
+#!/bin/bash
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+SNAP_DIR="zpr_snapshot_$TIMESTAMP"
+
+echo "=================================================="
+echo "    ZPR SOVEREIGN FULL-STATE SYSTEM SNAPSHOT      "
+echo "=================================================="
+
+mkdir -p "$SNAP_DIR"
+
+[ -f "zpr_chain.dat" ] && cp zpr_chain.dat "$SNAP_DIR/"
+[ -f "zpr_vault.dat" ] && cp zpr_vault.dat "$SNAP_DIR/"
+[ -f "folder_manifest.zpr" ] && cp folder_manifest.zpr "$SNAP_DIR/"
+
+tar -czf "${SNAP_DIR}.tar.gz" "$SNAP_DIR"
+rm -rf "$SNAP_DIR"
+
+# Hasilkan tanda tangan hash 1024-bit untuk snapshot
+zpr9x "${SNAP_DIR}.tar.gz" > "${SNAP_DIR}.tar.gz.sig"
+
+echo "[✔] Snapshot sistem kedaulatan berhasil dibuat!"
+echo "Berkas Arsip : ${SNAP_DIR}.tar.gz"
+echo "Tanda Tangan : ${SNAP_DIR}.tar.gz.sig"
+echo "=================================================="

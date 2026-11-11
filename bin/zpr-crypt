@@ -1,0 +1,66 @@
+#!/bin/bash
+MODE="$1"
+INFILE="$2"
+PASSWORD="$3"
+
+if [ -z "$MODE" ] || [ -z "$INFILE" ] || [ -z "$PASSWORD" ]; then
+    echo "Penggunaan: zpr-crypt <encrypt|decrypt> <berkas> <sandi>"
+    exit 1
+fi
+
+if [ ! -f "$INFILE" ]; then
+    echo "Error: Berkas '$INFILE' tidak ditemukan!"
+    exit 1
+fi
+
+echo "=================================================="
+echo "      ZPR-9X SOVEREIGN FILE CRYPT ENGINE          "
+echo "=================================================="
+
+python3 -c '
+import sys, subprocess
+
+mode = sys.argv[1]
+infile = sys.argv[2]
+password = sys.argv[3]
+
+print(f"Mode: {mode.upper()} | Berkas: {infile}")
+print("Menurunkan kunci kriptografi 1024-bit (Chaos KDF)...")
+
+# 1. Turunkan kunci master dari sandi menggunakan ZPR-9X
+p = subprocess.run(["zpr9x"], input=password.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+master_key = p.stdout.decode().strip().split()[0]
+
+with open(infile, "rb") as f:
+    data = f.read()
+
+file_len = len(data)
+keystream = bytearray()
+curr = master_key
+
+# 2. Hasilkan keystream sepanjang ukuran berkas menggunakan rantai hash ZPR-9X
+while len(keystream) < file_len:
+    p = subprocess.run(["zpr9x"], input=curr.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    curr = p.stdout.decode().strip().split()[0]
+    keystream.extend(bytes.fromhex(curr))
+
+# 3. Operasi XOR Stream Cipher
+result = bytes(a ^ b for a, b in zip(data, keystream[:file_len]))
+
+if mode == "encrypt":
+    outfile = infile + ".zprenc"
+    with open(outfile, "wb") as f:
+        f.write(result)
+    print(f"[✔] Berkas sukses dienkripsi: {outfile}")
+elif mode == "decrypt":
+    if infile.endswith(".zprenc"):
+        outfile = infile[:-7] + ".dec"
+    else:
+        outfile = infile + ".dec"
+    with open(outfile, "wb") as f:
+        f.write(result)
+    print(f"[✔] Berkas sukses didekripsi: {outfile}")
+else:
+    print("[✖] Error: Mode tidak dikenal. Gunakan encrypt atau decrypt.")
+' "$MODE" "$INFILE" "$PASSWORD"
+echo "=================================================="

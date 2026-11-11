@@ -1,0 +1,53 @@
+#!/bin/bash
+TX_DATA="$1"
+
+if [ -z "$TX_DATA" ]; then
+    echo "Penggunaan: zpr-mine <data_transaksi_atau_pesan>"
+    exit 1
+fi
+
+echo "=================================================="
+echo "    ZPR-9X SOVEREIGN BLOCK MINING ENGINE          "
+echo "=================================================="
+
+# Ambil hash blok terakhir sebagai referensi rantai
+PREV_HASH="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+if [ -f "zpr_chain.dat" ]; then
+    PREV_HASH=$(tail -n 1 zpr_chain.dat | awk '{print $1}')
+fi
+
+echo "Menghubungkan ke rantai sebelumnya..."
+echo "Hash Induk : ${PREV_HASH:0:32}..."
+echo "Data Transaksi: $TX_DATA"
+echo "Memulai pencarian Proof-of-Work (Chaos Compression)..."
+
+NON=0
+START_TIME=$(date +%s)
+
+while true; do
+    BLOCK_PAYLOAD="PREV:$PREV_HASH|DATA:$TX_DATA|NONCE:$NON|TS:$(date +%s)"
+    CURRENT_HASH=$(echo -n "$BLOCK_PAYLOAD" | zpr9x | awk '{print $1}')
+    
+    # Syarat konsensus kedaulatan: hash diawali dengan karakter '00'
+    if [[ "$CURRENT_HASH" == 00* ]]; then
+        END_TIME=$(date +%s)
+        ELAPSED=$((END_TIME - START_TIME))
+        
+        echo ""
+        echo "[✔] BLOK KEDAULATAN BERHASIL DITAMBANG!"
+        echo "Nonce ditemukan : $NON"
+        echo "Waktu Proses   : ${ELAPSED} detik"
+        echo "Hash Blok Baru : $CURRENT_HASH"
+        
+        # Simpan ke ledger rantai blok
+        echo "$CURRENT_HASH $BLOCK_PAYLOAD" >> zpr_chain.dat
+        echo "Blok berhasil disegel dan ditambahkan ke zpr_chain.dat!"
+        break
+    fi
+    
+    NON=$((NON + 1))
+    if [ $((NON % 20)) -eq 0 ]; then
+        echo -n "."
+    fi
+done
+echo "=================================================="

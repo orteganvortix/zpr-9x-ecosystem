@@ -1,0 +1,37 @@
+#!/bin/bash
+BACKUP_FILE="$1"
+
+if [ -z "$BACKUP_FILE" ]; then
+    echo "Penggunaan: zpr-restore <arsip_cold_storage.zprcold>"
+    exit 1
+fi
+
+if [ ! -f "$BACKUP_FILE" ]; then
+    echo "Error: Berkas arsip '$BACKUP_FILE' tidak ditemukan!"
+    exit 1
+fi
+
+SIG_FILE="${BACKUP_FILE}.sig"
+if [ ! -f "$SIG_FILE" ]; then
+    echo "Error: Berkas tanda tangan (.sig) tidak ditemukan!"
+    exit 1
+fi
+
+echo "=================================================="
+echo "    ZPR SOVEREIGN COLD STORAGE RESTORER           "
+echo "=================================================="
+echo "Memverifikasi tanda tangan kriptografi arsip..."
+
+CURRENT_HASH=$(zpr9x "$BACKUP_FILE" | awk '{print $1}')
+STORED_HASH=$(cat "$SIG_FILE" | awk '{print $1}')
+
+if [ "$CURRENT_HASH" = "$STORED_HASH" ]; then
+    echo "[✔] TANDA TANGAN VALID! Arsip dingin 100% otentik."
+    echo "Mengekstrak data ke direktori aktif..."
+    tar -xzf "$BACKUP_FILE"
+    echo "[✔] Pemulihan arsip cold storage berhasil tuntas!"
+else
+    echo "[✖] PERINGATAN: Tanda tangan TIDAK VALID! Arsip rusak atau dimodifikasi."
+    exit 1
+fi
+echo "=================================================="

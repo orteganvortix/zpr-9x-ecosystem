@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "=================================================="
+echo "    ZPR SOVEREIGN EMERGENCY KILL-SWITCH           "
+echo "=================================================="
+read -p "PERINGATAN KRITIS: Tindakan ini akan menghapus seluruh data lokal! Lanjutkan? (y/N): " CONFIRM
+if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
+    echo "Menjalankan pembersihan total dan penghancuran aman..."
+    [ -f "zpr_chain.dat" ] && rm -f zpr_chain.dat
+    [ -f "zpr_vault.dat" ] && rm -f zpr_vault.dat
+    [ -f "folder_manifest.zpr" ] && rm -f folder_manifest.zpr
+    [ -f "zpr_peers.dat" ] && rm -f zpr_peers.dat
+    rm -f *.zprenc *.zprpkg *.zprcold *.sig incoming_test.zprpkt peer_sample.dat
+    echo "[✔] SISTEM BERSIH TOTAL: Seluruh data kedaulatan lokal telah dimusnahkan."
+else
+    echo "Pembatalan darurat: Kill-switch dibatalkan."
+fi
+echo "=================================================="

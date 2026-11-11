@@ -1,0 +1,47 @@
+#!/bin/bash
+if [ "$1" = "sync" ]; then
+    PEER_LEDGER="$2"
+else
+    PEER_LEDGER="$1"
+fi
+
+if [ -z "$PEER_LEDGER" ]; then
+    echo "Penggunaan: zpr-net sync <berkas_ledger_peer.dat>"
+    exit 1
+fi
+
+if [ ! -f "$PEER_LEDGER" ]; then
+    echo "Error: Berkas ledger peer '$PEER_LEDGER' tidak ditemukan!"
+    exit 1
+fi
+
+echo "=================================================="
+echo "    ZPR SOVEREIGN P2P LEDGER SYNCHRONIZER         "
+echo "=================================================="
+echo "Memeriksa validitas rantai peer: $PEER_LEDGER..."
+
+python3 -c '
+import sys, subprocess
+
+peer_file = sys.argv[1]
+with open(peer_file, "r") as f:
+    peer_lines = [line.strip() for line in f if line.strip()]
+
+print(f"Total blok pada ledger peer: {len(peer_lines)}")
+for i, line in enumerate(peer_lines):
+    parts = line.split(" ", 1)
+    if len(parts) != 2:
+        print(f"[✖] Blok #{i+1} format tidak valid!")
+        sys.exit(1)
+print("[✔] Seluruh blok peer lolos pemeriksaan integritas awal!")
+' "$PEER_LEDGER"
+
+if [ $? -eq 0 ]; then
+    echo "Menggabungkan blok peer ke ledger lokal..."
+    cat "$PEER_LEDGER" >> zpr_chain.dat
+    awk '!seen[$0]++' zpr_chain.dat > zpr_chain.tmp && mv zpr_chain.tmp zpr_chain.dat
+    echo "[✔] Sinkronisasi P2P Berhasil! Rantai ledger lokal telah diperbarui."
+else
+    echo "[✖] Sinkronisasi Ditolak: Rantai ledger peer mengalami kerusakan format."
+fi
+echo "=================================================="

@@ -1,0 +1,43 @@
+#!/bin/bash
+echo "=================================================="
+echo "    ZPR SOVEREIGN ECOSYSTEM DIAGNOSTIC SUITE      "
+echo "=================================================="
+ERRORS=0
+
+# 1. Periksa Biner Inti
+echo -n "[*] Memeriksa biner global ZPR-9X... "
+if command -v zpr9x &> /dev/null && command -v zpr-ledger &> /dev/null && command -v zpr-vault &> /dev/null; then
+    echo "OK"
+else
+    echo "GAGAL (Ada biner yang hilang dari \$PREFIX/bin)"
+    ERRORS=$((ERRORS+1))
+fi
+
+# 2. Periksa Integritas Ledger
+echo -n "[*] Memeriksa rantai ledger (zpr_chain.dat)... "
+if [ -f "zpr_chain.dat" ]; then
+    if command -v zpr-verify &> /dev/null; then
+        echo "Ditemukan, menjalankan verifikasi..."
+        zpr-verify
+    else
+        echo "OK (File ada)"
+    fi
+else
+    echo "PERINGATAN (Belum ada ledger)"
+fi
+
+# 3. Periksa Brankas Vault
+echo -n "[*] Memeriksa brankas data (zpr_vault.dat)... "
+if [ -f "zpr_vault.dat" ]; then
+    echo "OK (Aktif)"
+else
+    echo "INFO (Brankas kosong)"
+fi
+
+echo "--------------------------------------------------"
+if [ $ERRORS -eq 0 ]; then
+    echo "STATUS AKHIR: SELURUH SISTEM 100% KOSMIK & SIAP OPERASI!"
+else
+    echo "STATUS AKHIR: Ditemukan $ERRORS kendala sistem."
+fi
+echo "=================================================="

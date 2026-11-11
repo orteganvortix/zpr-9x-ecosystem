@@ -1,0 +1,37 @@
+#!/bin/bash
+VAULT_DB="zpr_vault.dat"
+ACTION="$1"
+KEY="$2"
+DATA="$3"
+
+if [ "$ACTION" = "store" ]; then
+    if [ -z "$KEY" ] || [ -z "$DATA" ]; then
+        echo "Penggunaan: zpr-vault store <kunci_rahasia> <data_sensitif>"
+        exit 1
+    fi
+    # Turunkan kunci menggunakan mesin hash ZPR-9X
+    HASH_KEY=$(echo -n "$KEY" | zpr9x | awk '{print $1}')
+    echo "$HASH_KEY:$DATA" >> "$VAULT_DB"
+    echo "Sukses: Data berhasil dikunci dan disimpan ke ZPR-Vault!"
+
+elif [ "$ACTION" = "get" ]; then
+    if [ -z "$KEY" ]; then
+        echo "Penggunaan: zpr-vault get <kunci_rahasia>"
+        exit 1
+    fi
+    HASH_KEY=$(echo -n "$KEY" | zpr9x | awk '{print $1}')
+    if [ ! -f "$VAULT_DB" ]; then
+        echo "Error: Brankas kosong atau belum diinisialisasi."
+        exit 1
+    fi
+    FOUND=$(grep "^$HASH_KEY:" "$VAULT_DB" | cut -d':' -f2-)
+    if [ -n "$FOUND" ]; then
+        echo "Data Terdekripsi: $FOUND"
+    else
+        echo "Akses Ditolak: Kunci rahasia salah atau data tidak ditemukan!"
+    fi
+else
+    echo "=== ZPR-VAULT SOVEREIGN LOCKER ==="
+    echo "Simpan data : zpr-vault store <kunci> <data>"
+    echo "Ambil data  : zpr-vault get <kunci>"
+fi

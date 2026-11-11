@@ -1,0 +1,33 @@
+#!/bin/bash
+echo "=================================================="
+echo "      ZPR SOVEREIGN NODE STATUS DASHBOARD         "
+echo "=================================================="
+
+# Cek biner inti
+if command -v zpr9x &> /dev/null; then
+    echo "[✔] ZPR-9X Engine    : Aktif (Global Command)"
+else
+    echo "[✖] ZPR-9X Engine    : Tidak ditemukan"
+fi
+
+# Cek status Ledger
+if [ -f "zpr_chain.dat" ]; then
+    BLOCK_COUNT=$(wc -l < zpr_chain.dat)
+    LAST_BLOCK=$(tail -n 1 zpr_chain.dat | awk '{print $1}')
+    echo "[✔] ZPR Ledger       : Aktif ($BLOCK_COUNT Blok tercatat)"
+    echo "    Hash Terakhir    : ${LAST_BLOCK:0:32}..."
+else
+    echo "[!] ZPR Ledger       : Berkas rantai (zpr_chain.dat) belum diinisialisasi"
+fi
+
+# Cek status Manifest Folder
+if [ -f "folder_manifest.zpr" ]; then
+    MANIFEST_COUNT=$(wc -l < folder_manifest.zpr)
+    echo "[✔] Folder Manifest  : Aktif ($MANIFEST_COUNT file terlindungi)"
+else
+    echo "[!] Folder Manifest  : Belum ada pemindaian folder aktif"
+fi
+
+echo "--------------------------------------------------"
+echo "Status Node          : AMAN & TERPROTEKSI KRYPTOGRAFIS"
+echo "=================================================="

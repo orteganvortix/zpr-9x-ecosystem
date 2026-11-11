@@ -1,0 +1,44 @@
+#!/bin/bash
+ACTION="$1"
+SENDER="$2"
+MESSAGE="$3"
+
+if [ "$ACTION" = "sign" ]; then
+    if [ -z "$SENDER" ] || [ -z "$MESSAGE" ]; then
+        echo "Penggunaan: zpr-msg sign <nama_pengirim> <pesan>"
+        exit 1
+    fi
+    # Buat payload gabungan pengirim dan pesan
+    PAYLOAD="SENDER:$SENDER|MSG:$MESSAGE|TIMESTAMP:$(date +%s)"
+    SIGNATURE=$(echo -n "$PAYLOAD" | zpr9x | awk '{print $1}')
+    
+    echo "=================================================="
+    echo "PESAN BERTANDA TANGAN SOVEREIGN ZPR"
+    echo "=================================================="
+    echo "Pengirim  : $SENDER"
+    echo "Pesan     : $MESSAGE"
+    echo "Payload   : $PAYLOAD"
+    echo "Signature : $SIGNATURE"
+    echo "=================================================="
+
+elif [ "$ACTION" = "verify" ]; then
+    PAYLOAD="$2"
+    STORED_SIG="$3"
+    
+    if [ -z "$PAYLOAD" ] || [ -z "$STORED_SIG" ]; then
+        echo "Penggunaan: zpr-msg verify <payload_lengkap> <signature_asli>"
+        exit 1
+    fi
+    
+    CALCULATED_SIG=$(echo -n "$PAYLOAD" | zpr9x | awk '{print $1}')
+    
+    if [ "$CALCULATED_SIG" = "$STORED_SIG" ]; then
+        echo "[✔] VERIFIKASI BERHASIL: Pesan 100% otentik dan tidak dipalsukan!"
+    else
+        echo "[✖] VERIFIKASI GAGAL: Tanda tangan atau isi pesan telah dimodifikasi!"
+    fi
+else
+    echo "=== ZPR-MSG PROTOCOL ==="
+    echo "Tanda tangani pesan : zpr-msg sign <pengirim> <pesan>"
+    echo "Verifikasi pesan    : zpr-msg verify <payload> <signature>"
+fi

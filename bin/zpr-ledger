@@ -1,0 +1,17 @@
+#!/bin/bash
+CHAIN_FILE="zpr_chain.dat"
+
+if [ ! -f "$CHAIN_FILE" ]; then
+    echo "Inisialisasi Genesis Block (Blok Awal)..."
+    PREV_HASH="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+else
+    PREV_HASH=$(tail -n 1 "$CHAIN_FILE" | awk '{print $1}')
+fi
+
+DATA="${1:-Blok Kosong}"
+PAYLOAD="$PREV_HASH:$DATA"
+CURRENT_HASH=$(echo -n "$PAYLOAD" | zpr9x | awk '{print $1}')
+
+echo "$CURRENT_HASH  $DATA" >> "$CHAIN_FILE"
+echo "Blok baru berhasil ditambahkan ke rantai!"
+echo "Hash Blok: $CURRENT_HASH"

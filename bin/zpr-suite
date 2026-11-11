@@ -1,0 +1,55 @@
+#!/bin/bash
+echo "=================================================="
+echo "    ZPR SOVEREIGN INTEGRATION TEST SUITE          "
+echo "=================================================="
+PASSED=0
+TOTAL=5
+
+# Test 1: ZPR-9X Engine
+echo -n "[*] Menguji Mesin Inti ZPR-9X... "
+if echo -n "TestSovereign" | zpr9x &>/dev/null; then
+    echo "OK"
+    PASSED=$((PASSED+1))
+else
+    echo "GAGAL"
+fi
+
+# Test 2: Status Dashboard
+echo -n "[*] Menguji Dasbor Node... "
+if zpr-status &>/dev/null; then
+    echo "OK"
+    PASSED=$((PASSED+1))
+else
+    echo "GAGAL"
+fi
+
+# Test 3: Vault Security
+echo -n "[*] Menguji Brankas Privat... "
+if zpr-vault get "SandiUtama123" &>/dev/null; then
+    echo "OK"
+    PASSED=$((PASSED+1))
+else
+    echo "GAGAL"
+fi
+
+# Test 4: Security Audit
+echo -n "[*] Menguji Audit Kepatuhan... "
+if zpr-audit &>/dev/null; then
+    echo "OK"
+    PASSED=$((PASSED+1))
+else
+    echo "GAGAL"
+fi
+
+# Test 5: Performance Benchmarker
+echo -n "[*] Menguji Performa Benchmark... "
+if zpr-bench &>/dev/null; then
+    echo "OK"
+    PASSED=$((PASSED+1))
+else
+    echo "GAGAL"
+fi
+
+echo "--------------------------------------------------"
+echo "HASIL PENGUJIAN: $PASSED dari $TOTAL Modul Lulus Uji Integrasi."
+echo "=================================================="

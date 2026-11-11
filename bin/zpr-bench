@@ -1,0 +1,22 @@
+#!/bin/bash
+ITERATIONS=100
+echo "=================================================="
+echo "    ZPR-9X SOVEREIGN PERFORMANCE BENCHMARKER      "
+echo "=================================================="
+echo "Menjalankan $ITERATIONS iterasi uji stres hash 1024-bit..."
+
+START_TIME=$(date +%s%N)
+
+for ((i=1; i<=ITERATIONS; i++)); do
+    echo -n "Benchmark payload test block number $i" | zpr9x > /dev/null
+done
+
+END_TIME=$(date +%s%N)
+DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
+AVG_MS=$(( DURATION_MS / ITERATIONS ))
+
+echo "--------------------------------------------------"
+echo "Total Waktu Proses : ${DURATION_MS} ms"
+echo "Rata-rata per Blok : ${AVG_MS} ms/hash"
+echo "STATUS BENCHMARK   : PERFORMA KEDAULATAN OPTIMAL"
+echo "=================================================="

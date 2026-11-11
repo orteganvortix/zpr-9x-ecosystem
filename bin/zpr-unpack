@@ -1,0 +1,33 @@
+#!/bin/bash
+PACKAGE="$1"
+
+if [ -z "$PACKAGE" ]; then
+    echo "Penggunaan: zpr-unpack <nama_paket.zprpkg>"
+    exit 1
+fi
+
+if [ ! -f "$PACKAGE" ]; then
+    echo "Error: Berkas paket '$PACKAGE' tidak ditemukan!"
+    exit 1
+fi
+
+SIG_FILE="${PACKAGE}.sig"
+if [ ! -f "$SIG_FILE" ]; then
+    echo "Error: Berkas tanda tangan (.sig) untuk paket ini tidak ditemukan!"
+    exit 1
+fi
+
+echo "=== MEMVERIFIKASI TANDA TANGAN PAKET ZPR ==="
+# Hitung ulang hash paket saat ini
+CURRENT_HASH=$(zpr9x "$PACKAGE" | awk '{print $1}')
+STORED_HASH=$(cat "$SIG_FILE" | awk '{print $1}')
+
+if [ "$CURRENT_HASH" = "$STORED_HASH" ]; then
+    echo "Status: TANDA TANGAN VALID! Paket asli dan tidak dimodifikasi."
+    echo "Mengekstrak isi paket ke direktori aktif..."
+    tar -xzf "$PACKAGE"
+    echo "Ekstraksi Selesai! Data ledger dan manifest siap digunakan."
+else
+    echo "PERINGATAN KRITIS: Tanda tangan TIDAK VALID! Paket mungkin rusak atau disusupi!"
+    exit 1
+fi

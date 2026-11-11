@@ -1,0 +1,66 @@
+#!/bin/bash
+ACTION="$1"
+ARG1="$2"
+ARG2="$3"
+ARG3="$4"
+
+LEDGER="zpr_chain.dat"
+
+if [ "$ACTION" = "mint" ]; then
+    OWNER="$ARG1"
+    AMOUNT="$ARG2"
+    if [ -z "$OWNER" ] || [ -z "$AMOUNT" ]; then
+        echo "Penggunaan: zpr-token mint <pemilik> <jumlah>"
+        exit 1
+    fi
+    TX_DATA="TOKEN_MINT|OWNER:$OWNER|AMOUNT:$AMOUNT|TS:$(date +%s)"
+    echo "Mencetak aset digital sovereign untuk $OWNER sejumlah $AMOUNT..."
+    
+    PREV_HASH="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    if [ -f "$LEDGER" ]; then
+        PREV_HASH=$(tail -n 1 "$LEDGER" | awk '{print $1}')
+    fi
+    
+    BLOCK_PAYLOAD="PREV:$PREV_HASH|DATA:$TX_DATA"
+    CURRENT_HASH=$(echo -n "$BLOCK_PAYLOAD" | zpr9x | awk '{print $1}')
+    echo "$CURRENT_HASH $BLOCK_PAYLOAD" >> "$LEDGER"
+    echo "[✔] SUKSES: Token berhasil dicetak dan dicatat ke rantai ledger!"
+
+elif [ "$ACTION" = "balance" ]; then
+    OWNER="$ARG1"
+    if [ -z "$OWNER" ]; then
+        echo "Penggunaan: zpr-token balance <pemilik>"
+        exit 1
+    fi
+    
+    if [ ! -f "$LEDGER" ]; then
+        echo "Error: Ledger belum diinisialisasi."
+        exit 1
+    fi
+    
+    echo "Menghitung saldo aset untuk: $OWNER..."
+    python3 -c '
+import sys, re
+
+owner = sys.argv[1]
+ledger = sys.argv[2]
+balance = 0
+
+with open(ledger, "r") as f:
+    for line in f:
+        if "TOKEN_MINT" in line and f"OWNER:{owner}" in line:
+            m = re.search(r"AMOUNT:(\d+)", line)
+            if m:
+                balance += int(m.group(1))
+
+print("==================================================")
+print(f"SALDO KEDAULATAN: {owner}")
+print(f"Total Aset Token    : {balance} ZPR-Coin")
+print("==================================================")
+' "$OWNER" "$LEDGER"
+
+else
+    echo "=== ZPR-TOKEN SOVEREIGN ASSET MANAGER ==="
+    echo "1. Cetak Token : zpr-token mint <pemilik> <jumlah>"
+    echo "2. Cek Saldo   : zpr-token balance <pemilik>"
+fi

@@ -1,0 +1,46 @@
+#!/bin/bash
+ACTION="$1"
+ARG1="$2"
+ARG2="$3"
+ARG3="$4"
+
+if [ "$ACTION" = "challenge" ]; then
+    CHALLENGE=$(date +%s%N | zpr9x | awk '{print $1}')
+    echo "=================================================="
+    echo "ZPR SOVEREIGN AUTHENTICATION CHALLENGE"
+    echo "=================================================="
+    echo "CHALLENGE_NONCE:$CHALLENGE"
+    echo "=================================================="
+elif [ "$ACTION" = "respond" ]; then
+    CHALLENGE="$ARG1"
+    SECRET="$ARG2"
+    if [ -z "$CHALLENGE" ] || [ -z "$SECRET" ]; then
+        echo "Penggunaan: zpr-auth respond <challenge> <secret>"
+        exit 1
+    fi
+    RESPONSE=$(echo -n "CHALLENGE:$CHALLENGE|SECRET:$SECRET" | zpr9x | awk '{print $1}')
+    echo "RESPONSE_SIG:$RESPONSE"
+elif [ "$ACTION" = "verify" ]; then
+    CHALLENGE="$ARG1"
+    RESPONSE="$ARG2"
+    SECRET="$ARG3"
+    if [ -z "$CHALLENGE" ] || [ -z "$RESPONSE" ] || [ -z "$SECRET" ]; then
+        echo "Penggunaan: zpr-auth verify <challenge> <response> <secret>"
+        exit 1
+    fi
+    EXPECTED=$(echo -n "CHALLENGE:$CHALLENGE|SECRET:$SECRET" | zpr9x | awk '{print $1}')
+    echo "=================================================="
+    echo "ZPR SOVEREIGN AUTHENTICATION VERIFICATION"
+    echo "=================================================="
+    if [ "$EXPECTED" = "$RESPONSE" ]; then
+        echo "[✔] AUTENTIKASI BERHASIL: Identitas node terverifikasi 100% otentik!"
+    else
+        echo "[✖] AUTENTIKASI DITOLAK: Tanggapan kriptografi tidak valid atau kunci salah!"
+    fi
+    echo "=================================================="
+else
+    echo "=== ZPR-AUTH PROTOCOL ==="
+    echo "1. Buat tantangan : zpr-auth challenge"
+    echo "2. Beri tanggapan : zpr-auth respond <challenge> <secret>"
+    echo "3. Verifikasi     : zpr-auth verify <challenge> <response> <secret>"
+fi
